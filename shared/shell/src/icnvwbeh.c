@@ -24,11 +24,6 @@ enum
     N_COLUMNS
 };
 
-enum
-{
-    DRAG_TARGET_URI_LIST
-};
-
 //
 // FORWARD DECLARATIONS
 //
@@ -69,6 +64,19 @@ static gboolean on_icon_view_button_press_event(
     GtkIconView*    self,
     GdkEventButton* event,
     gpointer        user_data
+);
+static void on_icon_view_drag_begin(
+    GtkWidget*      widget,
+    GdkDragContext* context,
+    gpointer        user_data
+);
+static void on_icon_view_drag_data_get(
+    GtkWidget*        widget,
+    GdkDragContext*   context,
+    GtkSelectionData* selection_data,
+    guint             info,
+    guint             time,
+    gpointer          user_data
 );
 static void on_icon_view_drag_data_received(
     GtkWidget*        widget,
@@ -146,12 +154,25 @@ static GActionEntry S_ACTIONS[] = {
 };
 
 static GdkAtom S_ATOM_TEXT_URI_LIST;
+static GdkAtom S_ATOM_TEXT_X_WINTC_SHELL_LIST;
 
+static GtkTargetEntry S_DRAG_SOURCES[] = {
+    {
+        "text/uri-list",
+        0,
+        WINTC_SHEXT_DND_TARGET_URI_LIST
+    },
+    {
+        "text/x-wintc-shell-list",
+        0,
+        WINTC_SHEXT_DND_TARGET_X_WINTC_SHELL_LIST
+    }
+};
 static GtkTargetEntry S_DRAG_TARGETS[] = {
     {
         "text/uri-list",
         0,
-        DRAG_TARGET_URI_LIST
+        WINTC_SHEXT_DND_TARGET_URI_LIST
     }
 };
 
@@ -236,6 +257,8 @@ static void wintc_sh_icon_view_behaviour_class_init(
 
     S_ATOM_TEXT_URI_LIST =
         gdk_atom_intern_static_string("text/uri-list");
+    S_ATOM_TEXT_X_WINTC_SHELL_LIST =
+        gdk_atom_intern_static_string("text/x-wintc-shell-list");
 }
 
 static void wintc_sh_icon_view_behaviour_init(
@@ -363,6 +386,13 @@ static void wintc_sh_icon_view_behaviour_constructed(
 
     // Enable drag destination
     //
+    gtk_drag_source_set(
+        behaviour->icon_view,
+        GDK_BUTTON1_MASK,
+        NULL,
+        0,
+        GDK_ACTION_COPY
+    );
     gtk_drag_dest_set(
         behaviour->icon_view,
         0,
@@ -377,6 +407,18 @@ static void wintc_sh_icon_view_behaviour_constructed(
         behaviour->icon_view,
         "button-press-event",
         G_CALLBACK(on_icon_view_button_press_event),
+        behaviour
+    );
+    g_signal_connect(
+        behaviour->icon_view,
+        "drag-begin",
+        G_CALLBACK(on_icon_view_drag_begin),
+        behaviour
+    );
+    g_signal_connect(
+        behaviour->icon_view,
+        "drag-data-get",
+        G_CALLBACK(on_icon_view_drag_data_get),
         behaviour
     );
     g_signal_connect(
@@ -882,6 +924,87 @@ static gboolean on_icon_view_button_press_event(
     }
 
     return GDK_EVENT_PROPAGATE;
+}
+
+static void on_icon_view_drag_begin(
+    GtkWidget* widget,
+    WINTC_UNUSED(GdkDragContext* context),
+    gpointer   user_data
+)
+{
+    WinTCShIconViewBehaviour* behaviour =
+        WINTC_SH_ICON_VIEW_BEHAVIOUR(user_data);
+
+    GList* item_hashes =
+        wintc_sh_icon_view_behaviour_get_selected_items(behaviour);
+
+    // Query what drag targets are actually available for the items in this
+    // view
+    //
+    GtkTargetList* target_list = gtk_target_list_new(NULL, 0);
+
+    for (gsize i = 0; i < G_N_ELEMENTS(S_DRAG_SOURCES); i++)
+    {
+        if (
+            wintc_ishext_view_drag_test(
+                behaviour->current_view,
+                item_hashes,
+                S_DRAG_SOURCES[i].info
+            )
+        )
+        {
+            gtk_target_list_add(
+                target_list,
+                gdk_atom_intern_static_string(S_DRAG_SOURCES[i].target),
+                S_DRAG_SOURCES[i].flags,
+                S_DRAG_SOURCES[i].info
+            );
+        }
+    }
+
+    gtk_drag_source_set_target_list(widget, target_list);
+
+    gtk_target_list_unref(target_list);
+}
+
+static void on_icon_view_drag_data_get(
+    WINTC_UNUSED(GtkWidget* widget),
+    WINTC_UNUSED(GdkDragContext* context),
+    GtkSelectionData* selection_data,
+    guint             info,
+    WINTC_UNUSED(guint time),
+    gpointer          user_data
+)
+{
+    WinTCShIconViewBehaviour* behaviour =
+        WINTC_SH_ICON_VIEW_BEHAVIOUR(user_data);
+
+    GList* item_hashes =
+        wintc_sh_icon_view_behaviour_get_selected_items(behaviour);
+
+    if (!item_hashes)
+    {
+        return;
+    }
+
+    // Acquire the data
+    //
+    GList* uris =
+        wintc_ishext_view_drag_execute(
+            behaviour->current_view,
+            item_hashes,
+            info
+        );
+
+    gchar** uris_v = wintc_list_to_strv(uris, TRUE);
+
+    if (uris)
+    {
+        gtk_selection_data_set_uris(selection_data, uris_v);
+    }
+
+    g_strfreev(uris_v);
+    g_list_free(item_hashes);
 }
 
 static void on_icon_view_drag_data_received(
