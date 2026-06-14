@@ -965,6 +965,7 @@ static void on_icon_view_drag_begin(
     gtk_drag_source_set_target_list(widget, target_list);
 
     gtk_target_list_unref(target_list);
+    g_list_free(item_hashes);
 }
 
 static void on_icon_view_drag_data_get(
@@ -979,8 +980,9 @@ static void on_icon_view_drag_data_get(
     WinTCShIconViewBehaviour* behaviour =
         WINTC_SH_ICON_VIEW_BEHAVIOUR(user_data);
 
-    GList* item_hashes =
+    GList*  item_hashes =
         wintc_sh_icon_view_behaviour_get_selected_items(behaviour);
+    gchar** uris_v = NULL;
 
     if (!item_hashes)
     {
@@ -997,7 +999,7 @@ static void on_icon_view_drag_data_get(
         )
     )
     {
-        return;
+        goto cleanup;
     }
 
     // Acquire the data
@@ -1009,13 +1011,14 @@ static void on_icon_view_drag_data_get(
             info
         );
 
-    gchar** uris_v = wintc_list_to_strv(uris, TRUE);
+    uris_v = wintc_list_to_strv(uris, TRUE);
 
     if (uris)
     {
         gtk_selection_data_set_uris(selection_data, uris_v);
     }
 
+cleanup:
     g_strfreev(uris_v);
     g_list_free(item_hashes);
 }
