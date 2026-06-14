@@ -141,7 +141,8 @@ static gboolean real_activate_item(
 
 static gchar* wintc_sh_view_fs_build_path_for_view_item(
     WinTCShViewFS*      view_fs,
-    WinTCShextViewItem* item
+    WinTCShextViewItem* item,
+    gboolean            uri
 );
 static GList* wintc_sh_view_fs_convert_list_hashes(
     WinTCShViewFS* view_fs,
@@ -583,15 +584,35 @@ static gint wintc_sh_view_fs_compare_items(
 }
 
 static GList* wintc_sh_view_fs_drag_execute(
-    WINTC_UNUSED(WinTCIShextView*    view),
-    WINTC_UNUSED(GList*              item_hashes),
+    WinTCIShextView* view,
+    GList*           item_hashes,
     WINTC_UNUSED(WinTCShextDndTarget target)
 )
 {
-    //
-    // FIXME: Implement this
-    //
-    return NULL;
+    WinTCShViewFS* view_fs = WINTC_SH_VIEW_FS(view);
+
+    GList* list_uris = NULL;
+
+    for (GList* iter = item_hashes; iter; iter = iter->next)
+    {
+        WinTCShextViewItem* item =
+            wintc_sh_view_fs_get_view_item(
+                view_fs,
+                GPOINTER_TO_UINT(iter->data)
+            );
+
+        list_uris =
+            g_list_prepend(
+                list_uris,
+                wintc_sh_view_fs_build_path_for_view_item(
+                    view_fs,
+                    item,
+                    TRUE
+                )
+            );
+    }
+
+    return g_list_reverse(list_uris);
 }
 
 static gboolean wintc_sh_view_fs_drag_test(
@@ -600,10 +621,7 @@ static gboolean wintc_sh_view_fs_drag_test(
     WINTC_UNUSED(WinTCShextDndTarget target)
 )
 {
-    //
-    // FIXME: Implement this
-    //
-    return FALSE;
+    return TRUE;
 }
 
 static gboolean wintc_sh_view_fs_drop_execute(
@@ -634,7 +652,11 @@ static gboolean wintc_sh_view_fs_drop_execute(
         if (!(view_item->is_leaf))
         {
             target_path =
-                wintc_sh_view_fs_build_path_for_view_item(view_fs, view_item);
+                wintc_sh_view_fs_build_path_for_view_item(
+                    view_fs,
+                    view_item,
+                    FALSE
+                );
         }
     }
 
@@ -1201,7 +1223,8 @@ static gboolean real_activate_item(
     next_path =
         wintc_sh_view_fs_build_path_for_view_item(
             view_fs,
-            item
+            item,
+            FALSE
         );
 
     if (!(item->is_leaf))
@@ -1268,14 +1291,17 @@ static gboolean real_activate_item(
 
 static gchar* wintc_sh_view_fs_build_path_for_view_item(
     WinTCShViewFS*      view_fs,
-    WinTCShextViewItem* item
+    WinTCShextViewItem* item,
+    gboolean            uri
 )
 {
-    return g_build_path(
-        G_DIR_SEPARATOR_S,
+    const gchar* format =
+        uri ? "file://%s/%s" : "%s/%s";
+
+    return g_strdup_printf(
+        format,
         view_fs->path,
-        item->display_name,
-        NULL
+        item->display_name
     );
 }
 
@@ -1295,7 +1321,8 @@ static GList* wintc_sh_view_fs_convert_list_hashes(
         iter->data =
             wintc_sh_view_fs_build_path_for_view_item(
                 view_fs,
-                item
+                item,
+                FALSE
             );
     }
 

@@ -385,15 +385,34 @@ static gint wintc_sh_view_trash_compare_items(
 }
 
 static GList* wintc_sh_view_trash_drag_execute(
-    WINTC_UNUSED(WinTCIShextView*    view),
-    WINTC_UNUSED(GList*              item_hashes),
+    WinTCIShextView* view,
+    GList*           item_hashes,
     WINTC_UNUSED(WinTCShextDndTarget target)
 )
 {
-    //
-    // FIXME: Implement this
-    //
-    return NULL;
+    WinTCShViewTrash* view_trash = WINTC_SH_VIEW_TRASH(view);
+
+    GList* list_uris = NULL;
+
+    for (GList* iter = item_hashes; iter; iter = iter->next)
+    {
+        WinTCShextViewItem* item =
+            wintc_sh_view_trash_get_view_item(
+                view_trash,
+                GPOINTER_TO_UINT(iter->data)
+            );
+
+        list_uris =
+            g_list_prepend(
+                list_uris,
+                wintc_sh_view_trash_build_path_for_view_item(
+                    view_trash,
+                    item
+                )
+            );
+    }
+
+    return g_list_reverse(list_uris);
 }
 
 static gboolean wintc_sh_view_trash_drag_test(
@@ -402,10 +421,7 @@ static gboolean wintc_sh_view_trash_drag_test(
     WINTC_UNUSED(WinTCShextDndTarget target)
 )
 {
-    //
-    // FIXME: Implement this
-    //
-    return FALSE;
+    return TRUE;
 }
 
 static gboolean wintc_sh_view_trash_drop_execute(

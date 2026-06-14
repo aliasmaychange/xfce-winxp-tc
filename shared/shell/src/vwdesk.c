@@ -531,27 +531,50 @@ static gint wintc_sh_view_desktop_compare_items(
 }
 
 static GList* wintc_sh_view_desktop_drag_execute(
-    WINTC_UNUSED(WinTCIShextView*    view),
-    WINTC_UNUSED(GList*              item_hashes),
-    WINTC_UNUSED(WinTCShextDndTarget target)
+    WinTCIShextView*    view,
+    GList*              item_hashes,
+    WinTCShextDndTarget target
 )
 {
+    WinTCShViewDesktop* view_desk = WINTC_SH_VIEW_DESKTOP(view);
+
     //
-    // FIXME: Implement this
+    // FIXME: For now this SHOULD be the FS items, as the drag is otherwise
+    //        rejected
     //
-    return NULL;
+
+    return wintc_ishext_view_drag_execute(
+        view_desk->view_user_desktop,
+        item_hashes,
+        target
+    );
 }
 
 static gboolean wintc_sh_view_desktop_drag_test(
-    WINTC_UNUSED(WinTCIShextView*    view),
-    WINTC_UNUSED(GList*              item_hashes),
+    WinTCIShextView* view,
+    GList*           item_hashes,
     WINTC_UNUSED(WinTCShextDndTarget target)
 )
 {
+    WinTCShViewDesktop* view_desk = WINTC_SH_VIEW_DESKTOP(view);
+
     //
-    // FIXME: Implement this
+    // FIXME: Don't support dragging shell view items for now
     //
-    return FALSE;
+    for (GList* iter = item_hashes; iter; iter = iter->next)
+    {
+        if (
+            wintc_sh_view_desktop_get_view_item(
+                view_desk,
+                GPOINTER_TO_UINT(iter->data)
+            )
+        )
+        {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
 }
 
 static gboolean wintc_sh_view_desktop_drop_execute(

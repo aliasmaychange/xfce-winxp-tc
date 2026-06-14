@@ -987,6 +987,19 @@ static void on_icon_view_drag_data_get(
         return;
     }
 
+    // Test it's still valid
+    //
+    if (
+        !wintc_ishext_view_drag_test(
+            behaviour->current_view,
+            item_hashes,
+            info
+        )
+    )
+    {
+        return;
+    }
+
     // Acquire the data
     //
     GList* uris =
