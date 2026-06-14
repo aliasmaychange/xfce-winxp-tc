@@ -61,6 +61,16 @@ static gint wintc_cpl_view_printers_compare_items(
     guint            item_hash1,
     guint            item_hash2
 );
+static GList* wintc_cpl_view_printers_drag_execute(
+    WinTCIShextView*    view,
+    GList*              item_hashes,
+    WinTCShextDndTarget target
+);
+static gboolean wintc_cpl_view_printers_drag_test(
+    WinTCIShextView*    view,
+    GList*              item_hashes,
+    WinTCShextDndTarget target
+);
 static gboolean wintc_cpl_view_printers_drop_execute(
     WinTCIShextView*    view,
     GtkWindow*          wnd,
@@ -177,6 +187,8 @@ static void wintc_cpl_view_printers_ishext_view_interface_init(
 {
     iface->activate_item           = wintc_cpl_view_printers_activate_item;
     iface->compare_items           = wintc_cpl_view_printers_compare_items;
+    iface->drag_execute            = wintc_cpl_view_printers_drag_execute;
+    iface->drag_test               = wintc_cpl_view_printers_drag_test;
     iface->drop_execute            = wintc_cpl_view_printers_drop_execute;
     iface->drop_test               = wintc_cpl_view_printers_drop_test;
     iface->get_display_name        = wintc_cpl_view_printers_get_display_name;
@@ -244,6 +256,30 @@ static gint wintc_cpl_view_printers_compare_items(
 {
     // FIXME: Proper implementation
     return -1;
+}
+
+static GList* wintc_cpl_view_printers_drag_execute(
+    WINTC_UNUSED(WinTCIShextView*    view),
+    WINTC_UNUSED(GList*              item_hashes),
+    WINTC_UNUSED(WinTCShextDndTarget target)
+)
+{
+    //
+    // FIXME: Implement this
+    //
+    return NULL;
+}
+
+static gboolean wintc_cpl_view_printers_drag_test(
+    WINTC_UNUSED(WinTCIShextView*    view),
+    WINTC_UNUSED(GList*              item_hashes),
+    WINTC_UNUSED(WinTCShextDndTarget target)
+)
+{
+    //
+    // FIXME: Implement this
+    //
+    return FALSE;
 }
 
 static gboolean wintc_cpl_view_printers_drop_execute(
