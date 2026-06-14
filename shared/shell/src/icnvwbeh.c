@@ -391,7 +391,7 @@ static void wintc_sh_icon_view_behaviour_constructed(
         GDK_BUTTON1_MASK,
         NULL,
         0,
-        GDK_ACTION_COPY
+        GDK_ACTION_COPY | GDK_ACTION_MOVE
     );
     gtk_drag_dest_set(
         behaviour->icon_view,
