@@ -689,7 +689,19 @@ static GFile* get_g_file_for_copymove(
 {
     GFile* ret;
 
+    // Retrieve the filename
+    //
     gchar* filename = g_path_get_basename(src_path);
+
+    if (strchr(src_path, G_DIR_SEPARATOR) != src_path)
+    {
+        gchar* tmp = g_uri_unescape_string(filename, NULL);
+
+        wintc_strsteal(&filename, &tmp);
+    }
+
+    // Set up the target file
+    //
     gchar* new_dest = g_build_path(
                           G_DIR_SEPARATOR_S,
                           dest_path,
