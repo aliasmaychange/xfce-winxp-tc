@@ -54,6 +54,16 @@ static gint wintc_sh_view_trash_compare_items(
     guint            item_hash1,
     guint            item_hash2
 );
+static GList* wintc_sh_view_trash_drag_execute(
+    WinTCIShextView*    view,
+    GList*              item_hashes,
+    WinTCShextDndTarget target
+);
+static gboolean wintc_sh_view_trash_drag_test(
+    WinTCIShextView*    view,
+    GList*              item_hashes,
+    WinTCShextDndTarget target
+);
 static gboolean wintc_sh_view_trash_drop_execute(
     WinTCIShextView*    view,
     GtkWindow*          wnd,
@@ -259,6 +269,8 @@ static void wintc_sh_view_trash_ishext_view_interface_init(
 {
     iface->activate_item           = wintc_sh_view_trash_activate_item;
     iface->compare_items           = wintc_sh_view_trash_compare_items;
+    iface->drag_execute            = wintc_sh_view_trash_drag_execute;
+    iface->drag_test               = wintc_sh_view_trash_drag_test;
     iface->drop_execute            = wintc_sh_view_trash_drop_execute;
     iface->drop_test               = wintc_sh_view_trash_drop_test;
     iface->get_display_name        = wintc_sh_view_trash_get_display_name;
@@ -370,6 +382,30 @@ static gint wintc_sh_view_trash_compare_items(
         wintc_sh_view_trash_get_view_item(view_trash, item_hash1),
         wintc_sh_view_trash_get_view_item(view_trash, item_hash2)
     );
+}
+
+static GList* wintc_sh_view_trash_drag_execute(
+    WINTC_UNUSED(WinTCIShextView*    view),
+    WINTC_UNUSED(GList*              item_hashes),
+    WINTC_UNUSED(WinTCShextDndTarget target)
+)
+{
+    //
+    // FIXME: Implement this
+    //
+    return NULL;
+}
+
+static gboolean wintc_sh_view_trash_drag_test(
+    WINTC_UNUSED(WinTCIShextView*    view),
+    WINTC_UNUSED(GList*              item_hashes),
+    WINTC_UNUSED(WinTCShextDndTarget target)
+)
+{
+    //
+    // FIXME: Implement this
+    //
+    return FALSE;
 }
 
 static gboolean wintc_sh_view_trash_drop_execute(
